@@ -43,7 +43,7 @@ func extractEvent(r io.Reader) *sentry.Event {
 
 		t := sentry.Thread{
 			ID:         strconv.Itoa(routine.ID),
-			Name:       fmt.Sprintf("routine-%d", routine.ID),
+			Name:       fmt.Sprintf("goroutine-%d", routine.ID),
 			Stacktrace: stacktrace,
 			Crashed:    routine.First,
 			Current:    routine.State == "running",
