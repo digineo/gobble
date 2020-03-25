@@ -49,10 +49,13 @@ func readServiceJournal(serviceName string, buf *bytes.Buffer) error {
 	}
 	defer j.Close()
 
-	err = addMatches(j, []sdjournal.Match{
-		{"_PID", getServiceProperty(serviceName, "ExecMainPID")},
-		{"_SYSTEMD_USER_UNIT", serviceName},
-	})
+	err = addMatches(j, []sdjournal.Match{{
+		Field: "_PID",
+		Value: getServiceProperty(serviceName, "ExecMainPID"),
+	}, {
+		Field: "_SYSTEMD_USER_UNIT",
+		Value: serviceName,
+	}})
 	if err != nil {
 		return err
 	}
@@ -81,6 +84,6 @@ func readServiceJournal(serviceName string, buf *bytes.Buffer) error {
 			continue
 		}
 
-		buf.WriteString(entry.Fields["MESSAGE"]+"\n")
+		buf.WriteString(entry.Fields["MESSAGE"] + "\n")
 	}
 }
