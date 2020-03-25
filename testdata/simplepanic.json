@@ -1,0 +1,34 @@
+{
+  "level": "fatal",
+  "message": "i died, who guessed.\n",
+  "sdk": {},
+  "threads": [{
+    "id": "1",
+    "name": "goroutine-1",
+    "stacktrace": {
+      "frames": [{
+        "function": "iLoveCrashing",
+        "package": "main",
+        "filename": "main.go",
+        "lineno": 9,
+        "in_app": true
+      },{
+        "function": "innocentOperation",
+        "package": "main",
+        "filename": "main.go",
+        "lineno": 13,
+        "in_app": true
+      },{
+        "function": "main",
+        "package": "main",
+        "filename": "main.go",
+        "lineno": 25,
+        "in_app": true
+      }]
+    },
+    "crashed": true,
+    "current": true
+  }],
+  "user": {},
+  "request": {}
+}

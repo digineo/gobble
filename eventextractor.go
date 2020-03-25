@@ -8,22 +8,22 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/maruel/panicparse/stack"
-	"github.com/sirupsen/logrus"
 )
 
-func extractEvent(r io.Reader) *sentry.Event {
+var guesspaths = true // false in tests
+
+func extractEvent(r io.Reader) (*sentry.Event, error) {
 	var panicBuf PanicFilter
-	c, err := stack.ParseDump(r, &panicBuf, true)
+	c, err := stack.ParseDump(r, &panicBuf, guesspaths)
 	if err != nil {
-		sentry.CaptureException(err)
-		logrus.WithError(err).Fatal("parsing panic message failed")
+		return nil, err
 	}
 
 	if c == nil || len(c.Goroutines) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	e := sentry.NewEvent()
+	evt := sentry.NewEvent()
 	for _, routine := range c.Goroutines {
 		var frames []sentry.Frame
 		for _, line := range routine.Stack.Calls {
@@ -48,10 +48,10 @@ func extractEvent(r io.Reader) *sentry.Event {
 			Crashed:    routine.First,
 			Current:    routine.State == "running",
 		}
-		e.Threads = append(e.Threads, t)
+		evt.Threads = append(evt.Threads, t)
 	}
-	e.Message = panicBuf.Value()
-	e.Level = sentry.LevelFatal
+	evt.Message = panicBuf.Value()
+	evt.Level = sentry.LevelFatal
 
-	return e
+	return evt, nil
 }

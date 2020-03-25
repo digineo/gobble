@@ -3,50 +3,82 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"os"
 	"testing"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	simplePanicRaw = `panic: i died, who guessed.
-goroutine 1 [running]:
-main.iLoveCrashing(...)
-	/home/ags/git/digineo.de/acrashyapp/main.go:9
-main.innocentOperation(...)
-	/home/ags/git/digineo.de/acrashyapp/main.go:13
-main.main()
-	/home/ags/git/digineo.de/acrashyapp/main.go:25 +0x77`
+func TestMain(m *testing.M) {
+	guesspaths = false
+	os.Exit(m.Run())
+}
 
-	simplePanicJSON = `{"level":"fatal","message":"i died, who guessed.\n","sdk":{},"threads":[{"id":"1","name":"routine-1","stacktrace":{"frames":[{"function":"iLoveCrashing","package":"main","filename":"main.go","abs_path":"/usr/lib/go/home/ags/git/digineo.de/acrashyapp/main.go","lineno":9,"in_app":true},{"function":"innocentOperation","package":"main","filename":"main.go","abs_path":"/usr/lib/go/home/ags/git/digineo.de/acrashyapp/main.go","lineno":13,"in_app":true},{"function":"main","package":"main","filename":"main.go","abs_path":"/usr/lib/go/home/ags/git/digineo.de/acrashyapp/main.go","lineno":25,"in_app":true}]},"crashed":true,"current":true}],"user":{},"request":{}}`
+func loadLog(t *testing.T, fname string) []byte {
+	t.Helper()
 
-	noPanicRaw = `There is no panic here. Shoo shoo.`
-)
+	data, err := ioutil.ReadFile(fname)
+	if err != nil {
+		t.Fatalf("cannot read log file %s: %v", fname, err)
+	}
+	return data
+}
+
+// JSON files in testdata/ are kept in a human readable form. This means
+// we need to decode and re-encode its contents to generate comparable
+// results.
+func loadEvent(t *testing.T, fname string) []byte {
+	t.Helper()
+
+	f, err := os.Open(fname)
+	if err != nil {
+		t.Fatalf("cannot open event file %s: %v", fname, err)
+	}
+	defer f.Close()
+
+	var evt sentry.Event
+	if err := json.NewDecoder(f).Decode(&evt); err != nil {
+		t.Fatalf("cannot parse event file %s: %v", fname, err)
+	}
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(&evt); err != nil {
+		panic(err) // how?
+	}
+
+	return bytes.TrimSpace(buf.Bytes())
+}
 
 func Test_extractEvent(t *testing.T) {
 	tt := []struct {
-		name string
-		inp  string
-		want string
+		name      string
+		logFile   string
+		eventJSON string
 	}{
-		{"simple panic", simplePanicRaw, simplePanicJSON},
-		{"no panic", noPanicRaw, ""},
+		{"simple panic", "simplepanic.raw", "simplepanic.json"},
+		{"no panic", "nopanic.raw", ""},
 	}
-	for _, tc := range tt {
-		tc := tc
+	for i := range tt {
+		tc := tt[i]
 		t.Run(tc.name, func(t *testing.T) {
-			assert, require := assert.New(t), require.New(t)
+			input := loadLog(t, "testdata/"+tc.logFile)
 
-			e := extractEvent(bytes.NewBufferString(tc.inp))
-			if tc.want == "" {
-				assert.Nil(e)
-			} else {
-				actual, err := json.Marshal(e)
-				require.NoError(err)
+			event, err := extractEvent(bytes.NewBuffer(input))
+			require.NoError(t, err)
 
-				assert.Equal(tc.want, string(actual))
+			if tc.eventJSON == "" {
+				assert.Nil(t, event)
+				return
 			}
+
+			actual, err := json.Marshal(&event)
+			require.NoError(t, err)
+
+			expected := loadEvent(t, "testdata/"+tc.eventJSON)
+			assert.Equal(t, expected, actual)
 		})
 	}
 }
