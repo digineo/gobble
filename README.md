@@ -92,8 +92,13 @@ In both cases, you'll need to reload systemd:
 
 - [ ] If the service runs with an unprivileged user, executing gobble
   in a post-exec-hook will fail with "Failed to connect to bus" when
-  trying to read the journal. A workaround is to add the setuid bit to
-  gobble (`chmod u+s /path/to/gobble`), but that has its own problems.
+  trying to read the journal.
+
+  Two workarounds exist:
+
+  1. Add the `systemd-journal` group to the user specified by `User=`
+     (`usermod -aG systemd-journal USER`).
+  2. Add the setuid bit to gobble (`chmod u+s /path/to/gobble`).
 
 
 ## License
