@@ -14,7 +14,7 @@ import (
 
 func getServiceProperty(service, name string) string {
 	var out bytes.Buffer
-	c := exec.Command("systemctl", "--user", "show", fmt.Sprintf("--property=%s", name), service)
+	c := exec.Command("systemctl", "show", fmt.Sprintf("--property=%s", name), service)
 	c.Stdout = &out
 	c.Stderr = os.Stderr
 	if err := c.Run(); err != nil {

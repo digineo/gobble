@@ -100,6 +100,11 @@ In both cases, you'll need to reload systemd:
      (`usermod -aG systemd-journal USER`).
   2. Add the setuid bit to gobble (`chmod u+s /path/to/gobble`).
 
+- [ ] User services are not supported. If you need to call
+  `systemd --user status SERVICE` to get a service's status (opposed to
+  `systemd status SERVICE`), this affects you. The workaround is to
+  install the service as system service.
+
 
 ## License
 
