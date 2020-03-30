@@ -89,6 +89,11 @@ func main() {
 	if dsn == "" {
 		logf("missing or empty -dsn flag or SENTRY_DSN environment variable")
 	}
+
+	if debug {
+		logf("debug: service=%s env=%s dsn=%s", svc, env, dsn)
+	}
+
 	if !run() {
 		os.Exit(1)
 	}
