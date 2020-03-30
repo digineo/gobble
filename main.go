@@ -12,8 +12,8 @@ import (
 
 // ldflags
 var (
-	build  = "development"
-	commit = ""
+	version = "development"
+	commit  = ""
 )
 
 // CLI flags
@@ -75,7 +75,7 @@ func run() bool {
 
 func main() {
 	log.SetFlags(0) // we're running as systemd hook; the time is already present
-	logf("gobble version %s (%s)", build, commit)
+	logf("gobble version %s (%s)", version, commit)
 
 	flag.StringVar(&dsn, "dsn", dsn, "sentry `DSN`")
 	flag.StringVar(&svc, "service", svc, "service `name`")
