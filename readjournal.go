@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -25,6 +26,7 @@ func getServiceProperty(service, name string) string {
 	if i := strings.IndexByte(s, '='); i > 0 {
 		return s[i+1:]
 	}
+
 	return ""
 }
 
@@ -34,18 +36,19 @@ func addMatches(j *sdjournal.Journal, matches []sdjournal.Match) (err error) {
 			return
 		}
 	}
+
 	return
 }
 
-func readServiceJournal(serviceName string, buf *bytes.Buffer) error {
+func readServiceJournal(serviceName string, buf io.StringWriter) error {
 	timestamp, err := strconv.Atoi(getServiceProperty(serviceName, "ExecMainStartTimestampMonotonic"))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get timestamp: %w", err)
 	}
 
 	j, err := sdjournal.NewJournal()
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot open systemd journal: %w", err)
 	}
 	defer j.Close()
 
@@ -61,13 +64,13 @@ func readServiceJournal(serviceName string, buf *bytes.Buffer) error {
 	}
 
 	if err := j.SeekHead(); err != nil {
-		return err
+		return fmt.Errorf("cannot seek to begin of journal: %w", err)
 	}
 
 	for {
 		c, err := j.Next()
 		if err != nil {
-			return err
+			return fmt.Errorf("fetching journal entry failed: %w", err)
 		}
 		// Return when on the end of journal
 		if c == 0 {
@@ -76,7 +79,7 @@ func readServiceJournal(serviceName string, buf *bytes.Buffer) error {
 
 		entry, err := j.GetEntry()
 		if err != nil {
-			return err
+			return fmt.Errorf("reading journal entry failed: %w", err)
 		}
 
 		// Filter manually here since  sd_journal_seek_monotonic_usec is not provided by sdjournal.

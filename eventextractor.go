@@ -16,7 +16,7 @@ func extractEvent(r io.Reader) (*sentry.Event, error) {
 	var panicBuf PanicFilter
 	c, err := stack.ParseDump(r, &panicBuf, guesspaths)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing event dump failed: %w", err)
 	}
 
 	if c == nil || len(c.Goroutines) == 0 {

@@ -28,6 +28,7 @@ func (p *PanicFilter) WriteString(s string) (n int, err error) {
 		p.found = true
 		s = s[off+len(panicHeader):]
 	}
+
 	return p.buf.WriteString(s)
 }
 

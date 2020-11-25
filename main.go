@@ -10,13 +10,13 @@ import (
 	"github.com/getsentry/sentry-go"
 )
 
-// ldflags
+// Set via `-ldflags`.
 var (
 	version = "development"
 	commit  = ""
 )
 
-// CLI flags
+// Command line flags.
 var (
 	dsn   = os.Getenv("SENTRY_DSN")
 	svc   = ""
@@ -38,6 +38,7 @@ func run() bool {
 	})
 	if err != nil {
 		logf("initializing sentry failed: %v", err)
+
 		return false
 	}
 	defer sentry.Flush(5 * time.Second)
@@ -46,11 +47,13 @@ func run() bool {
 	if err := readServiceJournal(svc, &buf); err != nil {
 		sentry.CaptureException(err)
 		logf("reading journal failed: %v", err)
+
 		return false
 	}
 
 	if buf.Len() == 0 {
 		logf("no event found, empty buffer")
+
 		return true
 	}
 
@@ -58,10 +61,12 @@ func run() bool {
 	if err != nil {
 		sentry.CaptureException(err)
 		logf("extracting event failed: %v", err)
+
 		return true
 	}
 	if evt == nil {
 		logf("no event found")
+
 		return true
 	}
 
@@ -70,6 +75,7 @@ func run() bool {
 	} else {
 		logf("event was not sent")
 	}
+
 	return true
 }
 

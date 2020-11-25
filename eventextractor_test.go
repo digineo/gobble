@@ -53,6 +53,7 @@ func loadTestCase(t *testing.T, name string) (testCase struct {
 	}
 
 	testCase.event = bytes.TrimSpace(buf.Bytes())
+
 	return testCase
 }
 
@@ -75,6 +76,7 @@ func Test_extractEvent(t *testing.T) {
 
 			if !tc.hasEvent {
 				assert.Nil(t, actual)
+
 				return
 			}
 
