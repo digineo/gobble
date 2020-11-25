@@ -1,0 +1,18 @@
+[Unit]
+Description=crash generator
+
+[Service]
+User=www-data
+Group=nogroup
+
+Environment=GOTRACEBACK=all
+Environment=SENTRY_DSN=https://c000000000000fffffffeeeeeeeeeeee@127.0.0.1:9897:/42
+
+ExecStart=/usr/local/bin/gobble-panicd -bind 127.0.0.1:9898
+ExecStopPost=/usr/local/bin/gobble -debug -dsn $SENTRY_DSN -service %n
+
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
