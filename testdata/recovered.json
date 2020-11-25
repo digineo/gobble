@@ -1,6 +1,6 @@
 {
   "level": "fatal",
-  "message": "i died, who guessed.\n\n",
+  "message": "this is where it starts [recovered]\n\tpanic: and this is where it ends\n\n",
   "sdk": {},
   "threads": [
     {
@@ -9,17 +9,30 @@
       "stacktrace": {
         "frames": [
           {
-            "function": "ILoveCrashing",
-            "package": "simple",
+            "function": "ILoveCrashing.func1",
+            "package": "recovering",
             "filename": "crash.go",
-            "lineno": 4,
+            "lineno": 9,
+            "in_app": true
+          },
+          {
+            "function": "panic",
+            "filename": "panic.go",
+            "lineno": 969,
+            "in_app": true
+          },
+          {
+            "function": "ILoveCrashing",
+            "package": "recovering",
+            "filename": "crash.go",
+            "lineno": 13,
             "in_app": true
           },
           {
             "function": "innocentOperation",
             "package": "main",
             "filename": "main.go",
-            "lineno": 19,
+            "lineno": 23,
             "in_app": true
           },
           {

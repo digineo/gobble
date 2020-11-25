@@ -1,8 +1,25 @@
 {
   "level": "fatal",
-  "message": "i died, who guessed.\n\n",
+  "message": "i died in a goroutine\n\n",
   "sdk": {},
   "threads": [
+    {
+      "id": "18",
+      "name": "goroutine-18",
+      "stacktrace": {
+        "frames": [
+          {
+            "function": "concurrently",
+            "package": "concurrent",
+            "filename": "crash.go",
+            "lineno": 10,
+            "in_app": true
+          }
+        ]
+      },
+      "crashed": true,
+      "current": true
+    },
     {
       "id": "1",
       "name": "goroutine-1",
@@ -10,16 +27,16 @@
         "frames": [
           {
             "function": "ILoveCrashing",
-            "package": "simple",
+            "package": "concurrent",
             "filename": "crash.go",
-            "lineno": 4,
+            "lineno": 6,
             "in_app": true
           },
           {
             "function": "innocentOperation",
             "package": "main",
             "filename": "main.go",
-            "lineno": 19,
+            "lineno": 21,
             "in_app": true
           },
           {
@@ -30,9 +47,7 @@
             "in_app": true
           }
         ]
-      },
-      "crashed": true,
-      "current": true
+      }
     }
   ],
   "user": {},

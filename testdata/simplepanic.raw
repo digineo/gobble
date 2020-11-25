@@ -1,8 +1,9 @@
 panic: i died, who guessed.
+
 goroutine 1 [running]:
-main.iLoveCrashing(...)
-	/home/ags/git/digineo.de/acrashyapp/main.go:9
-main.innocentOperation(...)
-	/home/ags/git/digineo.de/acrashyapp/main.go:13
+simplepanic/simple.ILoveCrashing(...)
+	simplepanic/simple/crash.go:4
+main.innocentOperation(0x1)
+	simplepanic/main.go:19 +0x6e
 main.main()
-	/home/ags/git/digineo.de/acrashyapp/main.go:25 +0x77
+	simplepanic/main.go:33 +0xd6

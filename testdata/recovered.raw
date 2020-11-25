@@ -1,0 +1,15 @@
+recovered: this is where it starts
+panic: this is where it starts [recovered]
+	panic: and this is where it ends
+
+goroutine 1 [running]:
+simplepanic/recovering.ILoveCrashing.func1()
+	simplepanic/recovering/crash.go:9 +0xcb
+panic(0x4b3280, 0x4ec5d0)
+	runtime/panic.go:969 +0x1b9
+simplepanic/recovering.ILoveCrashing()
+	simplepanic/recovering/crash.go:13 +0x5b
+main.innocentOperation(0x3)
+	simplepanic/main.go:23 +0x39
+main.main()
+	simplepanic/main.go:33 +0xd6

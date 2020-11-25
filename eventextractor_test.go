@@ -17,31 +17,34 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func loadLog(t *testing.T, fname string) []byte {
+func loadTestCase(t *testing.T, name string) (testCase struct {
+	raw, event []byte
+	hasEvent   bool
+}) {
 	t.Helper()
 
-	data, err := ioutil.ReadFile(fname)
+	rawData, err := ioutil.ReadFile("testdata/" + name + ".raw")
 	if err != nil {
-		t.Fatalf("cannot read log file %s: %v", fname, err)
+		t.Fatalf("cannot read raw input data for %s: %v", name, err)
 	}
-	return data
-}
+	testCase.raw = rawData
 
-// JSON files in testdata/ are kept in a human readable form. This means
-// we need to decode and re-encode its contents to generate comparable
-// results.
-func loadEvent(t *testing.T, fname string) []byte {
-	t.Helper()
-
-	f, err := os.Open(fname)
+	evtData, err := ioutil.ReadFile("testdata/" + name + ".json")
 	if err != nil {
-		t.Fatalf("cannot open event file %s: %v", fname, err)
+		if os.IsNotExist(err) {
+			return // "nopanic" case
+		}
+		t.Fatalf("cannot read event JSON for %s: %v", name, err)
 	}
-	defer f.Close()
+	testCase.hasEvent = true
+
+	// JSON files in testdata/ are kept in a human readable form. This means
+	// we need to decode and re-encode its contents to generate comparable
+	// results.
 
 	var evt sentry.Event
-	if err := json.NewDecoder(f).Decode(&evt); err != nil {
-		t.Fatalf("cannot parse event file %s: %v", fname, err)
+	if err := json.Unmarshal(evtData, &evt); err != nil {
+		t.Fatalf("cannot parse event file %s: %v", name, err)
 	}
 
 	var buf bytes.Buffer
@@ -49,36 +52,36 @@ func loadEvent(t *testing.T, fname string) []byte {
 		panic(err) // how?
 	}
 
-	return bytes.TrimSpace(buf.Bytes())
+	testCase.event = bytes.TrimSpace(buf.Bytes())
+	return testCase
 }
 
 func Test_extractEvent(t *testing.T) {
-	tt := []struct {
-		name      string
-		logFile   string
-		eventJSON string
-	}{
-		{"simple panic", "simplepanic.raw", "simplepanic.json"},
-		{"no panic", "nopanic.raw", ""},
+	tt := []string{
+		"nopanic",
+		"simplepanic",
+		"recovered",
+		"concurrent",
 	}
-	for i := range tt {
-		tc := tt[i]
-		t.Run(tc.name, func(t *testing.T) {
-			input := loadLog(t, "testdata/"+tc.logFile)
 
-			event, err := extractEvent(bytes.NewBuffer(input))
+	for i := range tt {
+		name := tt[i]
+
+		t.Run(name, func(t *testing.T) {
+			tc := loadTestCase(t, name)
+
+			actual, err := extractEvent(bytes.NewBuffer(tc.raw))
 			require.NoError(t, err)
 
-			if tc.eventJSON == "" {
-				assert.Nil(t, event)
+			if !tc.hasEvent {
+				assert.Nil(t, actual)
 				return
 			}
 
-			actual, err := json.Marshal(&event)
+			actualJSON, err := json.Marshal(actual)
 			require.NoError(t, err)
 
-			expected := loadEvent(t, "testdata/"+tc.eventJSON)
-			assert.Equal(t, expected, actual)
+			assert.EqualValues(t, string(tc.event), string(actualJSON))
 		})
 	}
 }

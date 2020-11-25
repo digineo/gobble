@@ -1,0 +1,15 @@
+panic: i died in a goroutine
+
+goroutine 18 [running]:
+simplepanic/concurrent.concurrently()
+	simplepanic/concurrent/crash.go:10 +0x39
+created by simplepanic/concurrent.ILoveCrashing
+	simplepanic/concurrent/crash.go:4 +0x35
+
+goroutine 1 [select (no cases)]:
+simplepanic/concurrent.ILoveCrashing()
+	simplepanic/concurrent/crash.go:6 +0x3a
+main.innocentOperation(0x2)
+	simplepanic/main.go:21 +0x4f
+main.main()
+	simplepanic/main.go:33 +0xd6
