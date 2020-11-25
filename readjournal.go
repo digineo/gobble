@@ -53,10 +53,10 @@ func readServiceJournal(serviceName string, buf io.StringWriter) error {
 	defer j.Close()
 
 	err = addMatches(j, []sdjournal.Match{{
-		Field: "_PID",
+		Field: sdjournal.SD_JOURNAL_FIELD_PID,
 		Value: getServiceProperty(serviceName, "ExecMainPID"),
 	}, {
-		Field: "_SYSTEMD_USER_UNIT",
+		Field: sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT,
 		Value: serviceName,
 	}})
 	if err != nil {
