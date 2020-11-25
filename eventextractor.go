@@ -23,6 +23,9 @@ func extractEvent(r io.Reader) (*sentry.Event, error) {
 	}
 
 	evt := sentry.NewEvent()
+	evt.Message = panicBuf.Value()
+	evt.Level = sentry.LevelFatal
+
 	for _, routine := range c.Goroutines {
 		var frames []sentry.Frame
 		for _, line := range routine.Stack.Calls {
@@ -36,21 +39,15 @@ func extractEvent(r io.Reader) (*sentry.Event, error) {
 			})
 		}
 
-		stacktrace := &sentry.Stacktrace{
-			Frames: frames,
-		}
-
 		t := sentry.Thread{
 			ID:         strconv.Itoa(routine.ID),
 			Name:       fmt.Sprintf("goroutine-%d", routine.ID),
-			Stacktrace: stacktrace,
+			Stacktrace: &sentry.Stacktrace{Frames: frames},
 			Crashed:    routine.First,
 			Current:    routine.State == "running",
 		}
 		evt.Threads = append(evt.Threads, t)
 	}
-	evt.Message = panicBuf.Value()
-	evt.Level = sentry.LevelFatal
 
 	return evt, nil
 }
