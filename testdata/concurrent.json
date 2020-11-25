@@ -10,7 +10,7 @@
         "frames": [
           {
             "function": "concurrently",
-            "package": "concurrent",
+            "package": "simplepanic/concurrent",
             "filename": "crash.go",
             "lineno": 10,
             "in_app": true
@@ -27,7 +27,7 @@
         "frames": [
           {
             "function": "ILoveCrashing",
-            "package": "concurrent",
+            "package": "simplepanic/concurrent",
             "filename": "crash.go",
             "lineno": 6,
             "in_app": true
@@ -50,6 +50,5 @@
       }
     }
   ],
-  "user": {},
-  "request": {}
+  "user": {}
 }

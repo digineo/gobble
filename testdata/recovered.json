@@ -10,7 +10,7 @@
         "frames": [
           {
             "function": "ILoveCrashing.func1",
-            "package": "recovering",
+            "package": "simplepanic/recovering",
             "filename": "crash.go",
             "lineno": 9,
             "in_app": true
@@ -23,7 +23,7 @@
           },
           {
             "function": "ILoveCrashing",
-            "package": "recovering",
+            "package": "simplepanic/recovering",
             "filename": "crash.go",
             "lineno": 13,
             "in_app": true
@@ -48,6 +48,5 @@
       "current": true
     }
   ],
-  "user": {},
-  "request": {}
+  "user": {}
 }

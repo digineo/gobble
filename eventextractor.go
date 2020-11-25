@@ -1,21 +1,20 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
 	"strconv"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/maruel/panicparse/stack"
+	"github.com/maruel/panicparse/v2/stack"
 )
-
-var guesspaths = true // false in tests
 
 func extractEvent(r io.Reader) (*sentry.Event, error) {
 	var panicBuf PanicFilter
-	c, err := stack.ParseDump(r, &panicBuf, guesspaths)
-	if err != nil {
+
+	c, _, err := stack.ScanSnapshot(r, &panicBuf, stack.DefaultOpts())
+	if err != nil && !errors.Is(err, io.EOF) {
 		return nil, fmt.Errorf("parsing event dump failed: %w", err)
 	}
 
@@ -28,12 +27,12 @@ func extractEvent(r io.Reader) (*sentry.Event, error) {
 		var frames []sentry.Frame
 		for _, line := range routine.Stack.Calls {
 			frames = append(frames, sentry.Frame{
-				Function: line.Func.Name(),
-				Package:  line.Func.PkgName(),
-				Filename: filepath.Base(line.SrcPath),
+				Function: line.Func.Name,
+				Package:  line.Func.ImportPath,
+				Filename: line.SrcName,
 				AbsPath:  line.LocalSrcPath,
 				Lineno:   line.Line,
-				InApp:    !line.IsStdlib,
+				InApp:    line.Location != stack.Stdlib,
 			})
 		}
 

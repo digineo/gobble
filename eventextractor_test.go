@@ -12,11 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMain(m *testing.M) {
-	guesspaths = false
-	os.Exit(m.Run())
-}
-
 func loadTestCase(t *testing.T, name string) (testCase struct {
 	raw, event []byte
 	hasEvent   bool

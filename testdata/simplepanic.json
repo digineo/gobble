@@ -10,7 +10,7 @@
         "frames": [
           {
             "function": "ILoveCrashing",
-            "package": "simple",
+            "package": "simplepanic/simple",
             "filename": "crash.go",
             "lineno": 4,
             "in_app": true
@@ -35,6 +35,5 @@
       "current": true
     }
   ],
-  "user": {},
-  "request": {}
+  "user": {}
 }
