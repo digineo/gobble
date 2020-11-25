@@ -20,8 +20,9 @@ var (
 // Command line flags.
 var (
 	dsn   = os.Getenv("SENTRY_DSN")
-	svc   = ""
 	env   = "production"
+	svc   = ""
+	user  = false
 	debug = false
 )
 
@@ -45,7 +46,9 @@ func run() bool {
 	defer sentry.Flush(5 * time.Second)
 
 	var buf bytes.Buffer
-	if err := readServiceJournal(svc, &buf); err != nil {
+	jr := JournalReader{serviceName: svc, isUserService: user}
+
+	if err := jr.readInto(&buf); err != nil {
 		sentry.CaptureException(err)
 		logf("reading journal failed: %v", err)
 
@@ -90,8 +93,9 @@ func main() {
 	logf("gobble version %s (%s)", version, commit)
 
 	flag.StringVar(&dsn, "dsn", dsn, "sentry `DSN`")
-	flag.StringVar(&svc, "service", svc, "service `name`")
 	flag.StringVar(&env, "env", env, "environment `name`")
+	flag.StringVar(&svc, "service", svc, "service `name`")
+	flag.BoolVar(&user, "user", user, "when set, capture user unit files")
 	flag.BoolVar(&debug, "debug", debug, "print sentry events to stdout for debugging")
 	flag.Parse()
 

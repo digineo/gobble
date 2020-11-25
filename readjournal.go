@@ -13,12 +13,23 @@ import (
 	"github.com/coreos/go-systemd/v22/sdjournal"
 )
 
-func getServiceProperty(service, name string) string {
+type JournalReader struct {
+	serviceName string
+	isUserService bool
+}
+
+func (jr *JournalReader) property(name string) string {
+	args := []string{"show"}
+	if jr.isUserService {
+		args = append(args, "--user")
+	}
+	args = append(args, fmt.Sprintf("--property=%s", name), jr.serviceName)
+	cmd := exec.Command("systemctl", args...)
+
 	var out bytes.Buffer
-	c := exec.Command("systemctl", "show", fmt.Sprintf("--property=%s", name), service)
-	c.Stdout = &out
-	c.Stderr = os.Stderr
-	if err := c.Run(); err != nil {
+	cmd.Stdout = &out
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -30,18 +41,31 @@ func getServiceProperty(service, name string) string {
 	return ""
 }
 
-func addMatches(j *sdjournal.Journal, matches []sdjournal.Match) (err error) {
-	for _, m := range matches {
-		if err = j.AddMatch(m.String()); err != nil {
-			return
-		}
+func (jr *JournalReader) pidMatch() string {
+	m := sdjournal.Match{
+		Field: sdjournal.SD_JOURNAL_FIELD_PID,
+		Value: jr.property("ExecMainPID"),
 	}
 
-	return
+	return m.String()
 }
 
-func readServiceJournal(serviceName string, buf io.StringWriter) error {
-	timestamp, err := strconv.Atoi(getServiceProperty(serviceName, "ExecMainStartTimestampMonotonic"))
+func (jr *JournalReader) unitMatch() string {
+	field := sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT
+	if jr.isUserService {
+		field = sdjournal.SD_JOURNAL_FIELD_SYSTEMD_USER_UNIT
+	}
+
+	m := sdjournal.Match{
+		Field: field,
+		Value: jr.serviceName,
+	}
+
+	return m.String()
+}
+
+func (jr *JournalReader) readInto(w io.StringWriter) error {
+	timestamp, err := strconv.Atoi(jr.property("ExecMainStartTimestampMonotonic"))
 	if err != nil {
 		return fmt.Errorf("failed to get timestamp: %w", err)
 	}
@@ -52,17 +76,12 @@ func readServiceJournal(serviceName string, buf io.StringWriter) error {
 	}
 	defer j.Close()
 
-	err = addMatches(j, []sdjournal.Match{{
-		Field: sdjournal.SD_JOURNAL_FIELD_PID,
-		Value: getServiceProperty(serviceName, "ExecMainPID"),
-	}, {
-		Field: sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT,
-		Value: serviceName,
-	}})
-	if err != nil {
-		return err
+	if err = j.AddMatch(jr.pidMatch()); err != nil {
+		return fmt.Errorf("failed to add PID match: %w", err)
 	}
-
+	if err = j.AddMatch(jr.unitMatch()); err != nil {
+		return fmt.Errorf("failed to add unit match: %w", err)
+	}
 	if err := j.SeekHead(); err != nil {
 		return fmt.Errorf("cannot seek to begin of journal: %w", err)
 	}
@@ -87,6 +106,6 @@ func readServiceJournal(serviceName string, buf io.StringWriter) error {
 			continue
 		}
 
-		buf.WriteString(entry.Fields["MESSAGE"] + "\n")
+		w.WriteString(entry.Fields["MESSAGE"] + "\n")
 	}
 }
