@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"log"
 	"os"
@@ -28,7 +29,7 @@ var (
 // syscall.Exit which terminates the program immediately and skips deferred
 // functions.
 func logf(format string, v ...interface{}) {
-	log.Printf(format, v...)
+	log.Printf(format+"\n", v...)
 }
 
 func run() bool {
@@ -70,8 +71,13 @@ func run() bool {
 		return true
 	}
 
+	if debug {
+		data, _ := json.Marshal(evt)
+		logf("sending event: %s", data)
+	}
+
 	if id := sentry.CaptureEvent(evt); id != nil {
-		logf("sending event %s", *id)
+		logf("event sent, id: %s", *id)
 	} else {
 		logf("event was not sent")
 	}
